@@ -22,15 +22,14 @@ my_file=open("model.txt", "r")
 data=my_file.read()
 class_list=data.split("\n")
 class ImageDisplay:
-    def __init__(self, root, pathtofiles):
+    def __init__(self, root, pathtofiles, bounding_box_extractor):
         self.root = root
         self.pathtofiles = pathtofiles
         self.image_label = tkinter.Label(root)
         self.image_label.pack()
-        self.image_tracker = ImageTracker()
         self.filenames = self.get_filenames()
         self.current_index = 0
-
+        self.bounding_box_extractor = bounding_box_extractor
 
     def natural_sort_key(self, s):
         return [int(text) if text.isdigit() else text.lower()
@@ -59,20 +58,30 @@ class ImageDisplay:
         draw.text((0, 0), str(count), font=font, fill=(255, 255, 0))
         del draw
 
-    def display_vehicles(self, vehicles, img):
-        availability_time_list=[]
-        dynamic_vechicale_id=[]
+    def display_vehicles(self, img, tracked_vehicles):
         draw = ImageDraw.Draw(img)
         font = ImageFont.truetype('arial.ttf', 10)
-        #
-        for vehicle in vehicles:
-            if not vehicle.is_stationary():
-                vehicle.get_availability()
-                var=vehicle.get_id()
+        image_width, image_height = img.size
 
-                #bounding_box.get_bounding_boxes(img)
-                x1, y1, x2, y2,id =vehicle.box
-                draw.rectangle((x1, y1, x2, y2), outline='red', width=3)
-                draw.text((x1, y1), str(var), font=font, fill=(255, 255, 255))
-            count = self.image_tracker.get_count()
-            self.draw_count(img, count)
+        for vehicle_id, central_pt in tracked_vehicles.items():
+            x, y = central_pt.center_point
+            radius = 5
+            x_upper_left = x - radius
+            y_upper_left = y - radius
+            x_bottom_right = x + radius
+            y_bottom_right = y + radius
+
+            # Folosiți metoda din Bounding_Box_Extractor pentru a obține statusul vehiculului
+            vehicle_status = self.bounding_box_extractor.get_status(vehicle_id)
+            if vehicle_status is not None:
+                # Desenează în funcție de status
+                if vehicle_status == 'moving':
+                    draw.ellipse((x_upper_left, y_upper_left, x_bottom_right, y_bottom_right),
+                                 outline=(0, 0, 255), fill=(0, 0, 255))
+                    draw.text((x, y), str(vehicle_id), font=font, fill=(255, 255, 255))
+                else:
+                    if vehicle_status == 'stationary':
+                        # Desenează cu altă culoare pentru vehiculele statice (de exemplu, roșu)
+                        draw.rectangle((x_upper_left, y_upper_left, x_bottom_right, y_bottom_right),
+                                   outline=(255, 0, 0), fill=(255, 0, 0))
+                        draw.text((x, y), str(vehicle_id), font=font, fill=(255, 255, 255))
