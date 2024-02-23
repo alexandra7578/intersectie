@@ -4,7 +4,10 @@ from Analyze import *
 from Boundin_Boxes import*
 import tkinter
 from PIL import Image, ImageTk
+import os.path
 import threading
+
+project_path = os.path.abspath(os.path.dirname(__file__))
 
 # vidcap = cv2.VideoCapture('VideoPod.mp4')
 # def getFrame(sec):
@@ -45,7 +48,7 @@ def configure(root):
     image_label_vest = tkinter.Label(root)
     image_label_vest.place(x=600, y=270)
     bounding_box_extractor = BoundingBoxExtractor(model, class_list)
-    image_display_pod = ImageDisplay(root, "D:\Work\intersectie\Poze_Pod", bounding_box_extractor)
+    image_display_pod = ImageDisplay(root, os.path.join(project_path, "Poze_Pod"), bounding_box_extractor)
     filenames_pod = image_display_pod.get_filenames()
 
     img_tracker = Tracker()
@@ -60,7 +63,7 @@ def configure(root):
 def process_direction(direction, image_display, analyzer, filenames, image_label, root):
     for i in range(len(filenames)):
         img = Image.open(filenames[i])
-        print(i)
+        print("Frame number: {}".format(i))
 
         analyzer.analyze_frame(img)
         tracked_vehicles = analyzer.get_vehicles()
@@ -109,11 +112,12 @@ def main():
     image_label_vest, bounding_box_extractor, image_display_pod, filenames_pod, img_tracker, analyzer_nord = configure(
         root)
 
-    
+
     process_direction("nord", image_display_pod, analyzer_nord, filenames_pod, image_label_vest, root)
 
     # Start the Tkinter main loop
     root.mainloop()
+
 # Call the main function
 if __name__ == "__main__":
     main()

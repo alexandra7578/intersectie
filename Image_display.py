@@ -73,15 +73,14 @@ class ImageDisplay:
 
             # Folosiți metoda din Bounding_Box_Extractor pentru a obține statusul vehiculului
             vehicle_status = self.bounding_box_extractor.get_status(vehicle_id)
-            if vehicle_status is not None:
-                # Desenează în funcție de status
-                if vehicle_status == 'moving':
-                    draw.ellipse((x_upper_left, y_upper_left, x_bottom_right, y_bottom_right),
-                                 outline=(0, 0, 255), fill=(0, 0, 255))
-                    draw.text((x, y), str(vehicle_id), font=font, fill=(255, 255, 255))
-                else:
-                    if vehicle_status == 'stationary':
-                        # Desenează cu altă culoare pentru vehiculele statice (de exemplu, roșu)
-                        draw.rectangle((x_upper_left, y_upper_left, x_bottom_right, y_bottom_right),
-                                   outline=(255, 0, 0), fill=(255, 0, 0))
-                        draw.text((x, y), str(vehicle_id), font=font, fill=(255, 255, 255))
+            #if vehicle_status is not None:
+            #    # Desenează în funcție de status
+            #    if vehicle_status == 'moving':
+            draw.ellipse((x_upper_left, y_upper_left, x_bottom_right, y_bottom_right),outline=(0, 0, 255), fill=(0, 0, 255))
+            draw.text((x, y), str(vehicle_id), font=font, fill=(255, 255, 255))
+            #    else:
+            #        if vehicle_status == 'stationary':
+            #            # Desenează cu altă culoare pentru vehiculele statice (de exemplu, roșu)
+            #            draw.rectangle((x_upper_left, y_upper_left, x_bottom_right, y_bottom_right),
+            #                       outline=(255, 0, 0), fill=(255, 0, 0))
+            #            draw.text((x, y), str(vehicle_id), font=font, fill=(255, 255, 255))

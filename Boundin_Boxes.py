@@ -24,6 +24,7 @@ class BoundingBoxExtractor:
 
         current_time = datetime.now()
         elapsed_time = current_time - self.previous_time
+        self.previous_time = current_time
 
         for _, row in px.iterrows():
             x1 = int(row[0])
@@ -33,11 +34,9 @@ class BoundingBoxExtractor:
             d = int(row[5])
 
             c = self.class_list[d]
-            if 'car' in c:
+            if 'car' in c and y1 > 75:
                 self.bbox_list.append([x1, y1, x2, y2, 0])  # 0 în locul pentru ID-ul tracker-ului
                 self.availability_time_list.append(elapsed_time.total_seconds())
-
-        self.previous_time = current_time
 
         # Actualizează tracker-ul cu noile bounding box-uri
         self.tracker.update(self.bbox_list)
