@@ -6,6 +6,9 @@ import tkinter
 from PIL import Image, ImageTk
 import os.path
 import threading
+from sort import Sort
+import numpy as np
+
 
 project_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -60,22 +63,40 @@ def configure(root):
 
 
 
-def process_direction(direction, image_display, analyzer, filenames, image_label, root):
+def process_direction(direction, image_display, analyzer, bounding_box_extractor,filenames, image_label, root):
+    mot_tracker = Sort()
     for i in range(len(filenames)):
         img = Image.open(filenames[i])
         print("Frame number: {}".format(i))
 
-        analyzer.analyze_frame(img)
-        tracked_vehicles = analyzer.get_vehicles()
+        # Obțineți detecțiile pentru imaginea curentă
+        detections = bounding_box_extractor.get_bounding_boxes(img)
 
-        image_display.display_vehicles(img, tracked_vehicles)
-        image_display.draw_count(img, 0)
+        # Actualizați tracker-ul SORT cu detecțiile
+        track_bbs_ids = mot_tracker.update(np.array(detections))
 
+        # Actualizați eticheta imaginii pentru a afișa imaginea curentă
         img_tk = ImageTk.PhotoImage(img)
         image_label.configure(image=img_tk)
         image_label.image = img_tk
-        root.update()  # Update the Tkinter window
+        root.update()  # Actualizați fereastra Tkinter
         root.after(1000)
+
+    # for i in range(len(filenames)):
+    #     img = Image.open(filenames[i])
+    #     print("Frame number: {}".format(i))
+    #
+    #     analyzer.analyze_frame(img)
+    #     tracked_vehicles = analyzer.get_vehicles()
+    #
+    #     image_display.display_vehicles(img, tracked_vehicles)
+    #     image_display.draw_count(img, 0)
+    #
+    #     img_tk = ImageTk.PhotoImage(img)
+    #     image_label.configure(image=img_tk)
+    #     image_label.image = img_tk
+    #     root.update()  # Update the Tkinter window
+    #     root.after(1000)
 
 
 # def main():
@@ -108,12 +129,13 @@ def process_direction(direction, image_display, analyzer, filenames, image_label
 #     root.mainloop()
 def main():
     root = tkinter.Tk()
+    bounding_box_extractor = BoundingBoxExtractor(model, class_list)
     # Call the configure function to set up components
     image_label_vest, bounding_box_extractor, image_display_pod, filenames_pod, img_tracker, analyzer_nord = configure(
         root)
 
 
-    process_direction("nord", image_display_pod, analyzer_nord, filenames_pod, image_label_vest, root)
+    process_direction("nord", image_display_pod, analyzer_nord,bounding_box_extractor, filenames_pod, image_label_vest, root)
 
     # Start the Tkinter main loop
     root.mainloop()
