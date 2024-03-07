@@ -70,12 +70,12 @@ def process_direction(direction, image_display, analyzer, bounding_box_extractor
         print("Frame number: {}".format(i))
 
         # Obțineți detecțiile pentru imaginea curentă
-        detections = bounding_box_extractor.get_bounding_boxes(img)
-
-        # Actualizați tracker-ul SORT cu detecțiile
-        track_bbs_ids = mot_tracker.update(np.array(detections))
+        track_bbs_ids = bounding_box_extractor.get_bounding_boxes(img)
+        print("detections: {}".format(len(track_bbs_ids)))
 
         # Actualizați eticheta imaginii pentru a afișa imaginea curentă
+        image_display.display_vehicles(img, track_bbs_ids)
+        image_display.draw_count(img, 0)
         img_tk = ImageTk.PhotoImage(img)
         image_label.configure(image=img_tk)
         image_label.image = img_tk

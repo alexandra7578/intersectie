@@ -63,21 +63,16 @@ class ImageDisplay:
         font = ImageFont.truetype('arial.ttf', 10)
         image_width, image_height = img.size
 
-        for vehicle_id, central_pt in tracked_vehicles.items():
-            x, y = central_pt.center_point
+        for vehicle in tracked_vehicles:
             radius = 5
-            x_upper_left = x - radius
-            y_upper_left = y - radius
-            x_bottom_right = x + radius
-            y_bottom_right = y + radius
 
             # Folosiți metoda din Bounding_Box_Extractor pentru a obține statusul vehiculului
-            vehicle_status = self.bounding_box_extractor.get_status(vehicle_id)
+            vehicle_status = self.bounding_box_extractor.get_status(vehicle[4])
             #if vehicle_status is not None:
             #    # Desenează în funcție de status
             #    if vehicle_status == 'moving':
-            draw.ellipse((x_upper_left, y_upper_left, x_bottom_right, y_bottom_right),outline=(0, 0, 255), fill=(0, 0, 255))
-            draw.text((x, y), str(vehicle_id), font=font, fill=(255, 255, 255))
+            draw.ellipse((vehicle[0], vehicle[1], vehicle[2], vehicle[3]),outline=(0, 0, 255), fill=(0, 0, 255))
+            draw.text((vehicle[2], vehicle[3]), str(vehicle[4]), font=font, fill=(255, 255, 255))
             #    else:
             #        if vehicle_status == 'stationary':
             #            # Desenează cu altă culoare pentru vehiculele statice (de exemplu, roșu)
