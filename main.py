@@ -46,100 +46,98 @@ project_path = os.path.abspath(os.path.dirname(__file__))
 
 #o functie init si main unde sa apelez init
 #in while i <nr_de_img_
-
-def configure(root):
-    image_label_vest = tkinter.Label(root)
-    image_label_vest.place(x=600, y=270)
-    bounding_box_extractor = BoundingBoxExtractor(model, class_list)
-    image_display_pod = ImageDisplay(root, os.path.join(project_path, "Poze_Pod"), bounding_box_extractor)
-    filenames_pod = image_display_pod.get_filenames()
-
-    img_tracker = Tracker()
-    analyzer_nord = Analyzer(bounding_box_extractor=bounding_box_extractor, img_tracker=img_tracker)
-
-    return image_label_vest, bounding_box_extractor, image_display_pod, filenames_pod, img_tracker, analyzer_nord
+#de optimizat c
 
 
-
-
-
-def process_direction(direction, image_display, analyzer, bounding_box_extractor,filenames, image_label, root):
+def process_direction(root):
     mot_tracker = Sort()
-    for i in range(len(filenames)):
-        img = Image.open(filenames[i])
+    image_label_nord = tkinter.Label(root)
+    image_label_nord.place(x=500, y=25)
+    image_label_sud = tkinter.Label(root)
+    image_label_sud.place(x=500, y=400)
+    image_label_est = tkinter.Label(root)
+    image_label_est.place(x=15, y=270)
+    image_label_vest = tkinter.Label(root)
+    image_label_vest.place(x=1000, y=270)
+
+    bounding_box_extractor_nord = BoundingBoxExtractor(model, class_list)
+    image_display_nord = ImageDisplay(root, os.path.join(project_path, "Poze_Nord"), bounding_box_extractor_nord)
+    filenames_nord = image_display_nord.get_filenames()
+
+    bounding_box_extractor_sud = BoundingBoxExtractor(model, class_list)
+    image_display_sud = ImageDisplay(root, os.path.join(project_path, "Poze_Sud"), bounding_box_extractor_sud)
+    filenames_sud = image_display_sud.get_filenames()
+
+    bounding_box_extractor_est = BoundingBoxExtractor(model, class_list)
+    image_display_est = ImageDisplay(root, os.path.join(project_path, "Poze_Est"), bounding_box_extractor_est)
+    filenames_est = image_display_est.get_filenames()
+
+    bounding_box_extractor_vest = BoundingBoxExtractor(model, class_list)
+    image_display_vest = ImageDisplay(root, os.path.join(project_path, "Poze_Vest"), bounding_box_extractor_vest)
+    filenames_vest = image_display_vest.get_filenames()
+    for i in range(len(filenames_vest)):
+        img_nord = Image.open(filenames_nord[i])
+        img_sud = Image.open(filenames_sud[i])
+        img_est = Image.open(filenames_est[i])
+        img_vest = Image.open(filenames_vest[i])
+        img_nord = img_nord.resize((400, 350))
+        img_sud = img_sud.resize((400, 350))
+        img_est = img_est.resize((400, 350))
+        img_vest = img_vest.resize((400, 350))
         print("Frame number: {}".format(i))
 
         # Obțineți detecțiile pentru imaginea curentă
-        track_bbs_ids = bounding_box_extractor.get_bounding_boxes(img)
-        print("detections: {}".format(len(track_bbs_ids)))
+        track_bbs_ids_nord = bounding_box_extractor_nord.get_bounding_boxes(img_nord)
+        track_bbs_ids_sud = bounding_box_extractor_sud.get_bounding_boxes(img_sud)
+        track_bbs_ids_est = bounding_box_extractor_est.get_bounding_boxes(img_est)
+        track_bbs_ids_vest = bounding_box_extractor_vest.get_bounding_boxes(img_vest)
+        print("detections: {}".format(len(track_bbs_ids_nord)))
+        print("detections: {}".format(len(track_bbs_ids_est)))
+        print("detections: {}".format(len(track_bbs_ids_vest)))
+        print("detections: {}".format(len(track_bbs_ids_sud)))
 
         # Actualizați eticheta imaginii pentru a afișa imaginea curentă
-        image_display.display_vehicles(img, track_bbs_ids)
-        image_display.draw_count(img, 0)
-        img_tk = ImageTk.PhotoImage(img)
-        image_label.configure(image=img_tk)
-        image_label.image = img_tk
+        image_display_nord.display_vehicles(img_nord, track_bbs_ids_nord)
+        image_display_nord.draw_count(img_nord, 0)
+        img_tk_nord = ImageTk.PhotoImage(img_nord)
+        image_label_nord.configure(image=img_tk_nord)
+        image_label_nord.image = img_tk_nord
+
+
+        image_display_sud.display_vehicles(img_sud, track_bbs_ids_sud)
+        image_display_sud.draw_count(img_sud, 0)
+        img_tk_sud = ImageTk.PhotoImage(img_sud)
+        image_label_sud.configure(image=img_tk_sud)
+        image_label_sud.image = img_tk_sud
+
+
+        image_display_est.display_vehicles(img_est, track_bbs_ids_est)
+        image_display_est.draw_count(img_est, 0)
+        img_tk_est = ImageTk.PhotoImage(img_est)
+        image_label_est.configure(image=img_tk_est)
+        image_label_est.image = img_tk_est
+
+        image_display_vest.display_vehicles(img_vest, track_bbs_ids_vest)
+        image_display_vest.draw_count(img_vest, 0)
+        img_tk_vest = ImageTk.PhotoImage(img_vest)
+        image_label_vest.configure(image=img_tk_vest)
+        image_label_vest.image = img_tk_vest
+
+
         root.update()  # Actualizați fereastra Tkinter
-        root.after(1000)
-
-    # for i in range(len(filenames)):
-    #     img = Image.open(filenames[i])
-    #     print("Frame number: {}".format(i))
-    #
-    #     analyzer.analyze_frame(img)
-    #     tracked_vehicles = analyzer.get_vehicles()
-    #
-    #     image_display.display_vehicles(img, tracked_vehicles)
-    #     image_display.draw_count(img, 0)
-    #
-    #     img_tk = ImageTk.PhotoImage(img)
-    #     image_label.configure(image=img_tk)
-    #     image_label.image = img_tk
-    #     root.update()  # Update the Tkinter window
-    #     root.after(1000)
+        root.after(500)
 
 
-# def main():
-#     root=tkinter.Tk()
-#     image_label_vest = tkinter.Label(root)
-#     image_label_vest.place(x=600, y=270)
-#     bounding_box_extractor = BoundingBoxExtractor(model, class_list)
-#     # Initialize ImageDisplay instances for different directions
-#     # image_display_nord = ImageDisplay(root, "D:\Work\intersectie\Poze_Nord")
-#     # image_display_sud = ImageDisplay(root, "D:\Work\intersectie\Poze_Sud")
-#     # image_display_est = ImageDisplay(root, "D:\Work\intersectie\Poze_Est")
-#     # image_display_vest = ImageDisplay(root, "D:\Work\intersectie\Poze_Vest")
-#     image_display_pod = ImageDisplay(root, "D:\Work\intersectie\Poze_Pod", bounding_box_extractor)
-#     filenames_pod = image_display_pod.get_filenames()
-#     # Initialize BoundingBoxExtractor and Analyzer instances
-#
-#     img_tracker = Tracker()
-#     analyzer_nord = Analyzer(bounding_box_extractor=bounding_box_extractor, img_tracker=img_tracker)
-#     # analyzer_sud = Analyzer(bounding_box_extractor=bounding_box_extractor, img_tracker=img_tracker)
-#     # analyzer_est = Analyzer(bounding_box_extractor=bounding_box_extractor, img_tracker=img_tracker)
-#     # analyzer_vest = Analyzer(bounding_box_extractor=bounding_box_extractor, img_tracker=img_tracker)
-#     #analyzer_pod = Analyzer(bounding_box_extractor=bounding_box_extractor, img_tracker=img_tracker)
-#
-#     # Call process_direction for each direction
-#     # process_direction("nord", image_display_nord, analyzer_nord)
-#     # process_direction("sud", image_display_sud, analyzer_sud, image_label_sud, 0)
-#     # process_direction("est", image_display_est, analyzer_est, image_label_est, 0)
-#     # process_direction("vest", image_display_vest, analyzer_vest, image_label_vest, 0)
-#     process_direction("nord", image_display_pod, analyzer_nord, filenames_pod, image_label_vest, root)
-#     root.mainloop()
 def main():
     root = tkinter.Tk()
-    bounding_box_extractor = BoundingBoxExtractor(model, class_list)
-    # Call the configure function to set up components
-    image_label_vest, bounding_box_extractor, image_display_pod, filenames_pod, img_tracker, analyzer_nord = configure(
-        root)
 
-
-    process_direction("nord", image_display_pod, analyzer_nord,bounding_box_extractor, filenames_pod, image_label_vest, root)
+    # Definirea funcțiilor pentru procesarea fiecărei direcții
+    process_direction(root)
 
     # Start the Tkinter main loop
     root.mainloop()
 
-# Call the main function
+
+# Apelați funcția main
 if __name__ == "__main__":
     main()
