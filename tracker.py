@@ -1,4 +1,5 @@
 import math
+from sort import Sort
 from datetime import datetime, timedelta
 
 class TrackObj:
@@ -21,6 +22,7 @@ class Tracker:
 
     def __init__(self):
         self.count = 0
+        self.sort_tracker = Sort()
         self.center_points_prev_frame = []
         self.tracking_objects = {}  # dicționar cu identificatori unici
         self.track_id = 0
@@ -31,7 +33,7 @@ class Tracker:
     def update(self, boxes):
         self.count += 1
         center_points_cur_frame = []
-
+        sort_detections = []
         # Colectează toate punctele centrale ale detecțiilor curente
         for box in boxes:
             (x1, y1, x2, y2, id) = box

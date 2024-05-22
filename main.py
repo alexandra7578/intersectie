@@ -1,55 +1,74 @@
-from Image_display import *
-from Image_display import *
-from Analyze import *
-from Boundin_Boxes import*
-import tkinter
+import tkinter as tk
 from PIL import Image, ImageTk
-import os.path
+import os
 import threading
-from sort import Sort
-import numpy as np
+from ultralytics import YOLO
+import re
 
-
-project_path = os.path.abspath(os.path.dirname(__file__))
-
-# vidcap = cv2.VideoCapture('VideoPod.mp4')
+# Asigurați-vă că toate importurile sunt corecte și că modulele sunt disponibile
+from Image_display import ImageDisplay
+from Boundin_Boxes import BoundingBoxExtractor
+from TrafficController import TrafficLightController
+import tkinter
+from sort import *
+from Semafor import Semafor
+import cv2
+# pentru a face filmuletele imagini
+# vidcap = cv2.VideoCapture('Est.mp4')
 # def getFrame(sec):
 #     vidcap.set(cv2.CAP_PROP_POS_MSEC,sec*1000)
 #     hasFrames,image = vidcap.read()
 #     if hasFrames:
-#         cv2.imwrite("pod_00"+str(count)+".JPEG", image)     # save frame as JPG file
+#         cv2.imwrite("est_00"+str(count)+".JPEG", image)     # save frame as JPG file
 #     return hasFrames
 # sec = 0
 # frameRate = 0.5 #//it will capture image in each 0.5 second
 # count=1
-# success = getFrame(sec)
+# # success = getFrame(s  ec)
 # while success:
 #     count = count + 1
 #     sec = sec + frameRate
 #     sec = round(sec, 2)
 #     success = getFrame(sec)
-# root.geometry("1000x1000")
+_nsre = re.compile('([0-9]+)')
+model = YOLO("yolov8n.pt")
+my_file=open("model.txt", "r")
+data=my_file.read()
+class_list=data.split("\n")
+# Setarea căii proiectului
+project_path = os.path.abspath(os.path.dirname(__file__))
 
-# image_label_nord=tkinter.Label(root)
-# image_label_nord.place(x=350, y=25)
-# image_label_nord=tkinter.Label(root)
-# image_label_nord.place(x=350, y=25)
-# image_label_sud=tkinter.Label(root)
-# image_label_sud.place(x=350, y=520)
-# image_label_est=tkinter.Label(root)
-# image_label_est.place(x=15, y=270)
-# image_label_vest=tkinter.Label(root)
-# image_label_vest.place(x=600, y=270)
-# o functie care parseaza folderele cate elem au
-# daca sunt egale le iau una cate una cu un i
-# analyze si draw
+controller = TrafficLightController(ns_green_duration=10, ew_green_duration=10)
+root = tk.Tk()
+root.title("Traffic Light Simulation")
+root.geometry("400x400")
 
-#o functie init si main unde sa apelez init
-#in while i <nr_de_img_
-#de optimizat c
+semafor_nord = Semafor(root, x=950, y=50, initial_color='green')
+semafor_sud = Semafor(root, x=900, y=540, initial_color='green')
+semafor_est = Semafor(root, x=1200, y=100, initial_color='red')
+semafor_vest = Semafor(root, x=100, y=100, initial_color='red')
 
+# Gruparea semafoarelor Nord-Sud și Est-Vest
+ns_semafoare = [semafor_nord, semafor_sud]
+ew_semafoare = [semafor_est, semafor_vest]
+def update_traffic_lights():
+    if controller.current_state == 'NSG' or controller.current_state == 'NSY':
+        ns_color = 'green' if controller.current_state == 'NSG' else 'yellow'
+        ew_color = 'red'
+    elif controller.current_state == 'EWG' or controller.current_state == 'EWY':
+        ew_color = 'green' if controller.current_state == 'EWG' else 'yellow'
+        ns_color = 'red'
+
+    for light in ns_semafoare:
+        light.set_color(ns_color)
+    for light in ew_semafoare:
+        light.set_color(ew_color)
+    root.after(1000, update_traffic_lights)
 
 def process_direction(root):
+    last_update_time = time.time()
+    update_frequency_time = 30  # secunde
+
     mot_tracker = Sort()
     image_label_nord = tkinter.Label(root)
     image_label_nord.place(x=500, y=25)
@@ -86,6 +105,7 @@ def process_direction(root):
         img_vest = img_vest.resize((400, 350))
         print("Frame number: {}".format(i))
 
+
         # Obțineți detecțiile pentru imaginea curentă
         track_bbs_ids_nord = bounding_box_extractor_nord.get_bounding_boxes(img_nord)
         track_bbs_ids_sud = bounding_box_extractor_sud.get_bounding_boxes(img_sud)
@@ -96,7 +116,24 @@ def process_direction(root):
         print("detections: {}".format(len(track_bbs_ids_vest)))
         print("detections: {}".format(len(track_bbs_ids_sud)))
 
-        # Actualizați eticheta imaginii pentru a afișa imaginea curentă
+
+        current_time = time.time()
+        if current_time - last_update_time > update_frequency_time:
+            ns_traffic = len(track_bbs_ids_nord)+len(track_bbs_ids_sud)  # Adună detecțiile pentru nord-sud
+            ew_traffic = len(track_bbs_ids_est)+len(filenames_vest)  # Adună detecțiile pentru est-vest
+
+            ns_green_time = 15 + 3 * (ns_traffic % 10)
+            ew_green_time = 15 + 3 * (ew_traffic % 10)
+
+            ns_green_time = min(ns_green_time, 60)  # Limita maxima de 60 secunde
+            ew_green_time = min(ew_green_time, 60)  # Limita maxima de 60 secunde
+
+            controller.set_green_duration(ns_duration=ns_green_time, ew_duration=ew_green_time)
+            last_update_time = current_time
+
+        controller.update_state()  # rularea semaforului
+        update_traffic_lights()
+        #Actualizați eticheta imaginii pentru a afișa imaginea curentă
         image_display_nord.display_vehicles(img_nord, track_bbs_ids_nord)
         image_display_nord.draw_count(img_nord, 0)
         img_tk_nord = ImageTk.PhotoImage(img_nord)
@@ -129,15 +166,10 @@ def process_direction(root):
 
 
 def main():
-    root = tkinter.Tk()
-
-    # Definirea funcțiilor pentru procesarea fiecărei direcții
     process_direction(root)
-
-    # Start the Tkinter main loop
     root.mainloop()
 
-
-# Apelați funcția main
 if __name__ == "__main__":
     main()
+
+
